@@ -12,7 +12,7 @@ class RateLimiter(object):
     requests for a time period.
     """
 
-    def __init__(self, max_calls, period=1.0, callback=None):
+    def __init__(self, max_calls, period=1.0, callback=None, consume=1):
         """Initialize a RateLimiter object which enforces as much as max_calls
         operations on period (eventually floating) number of seconds.
         """
@@ -28,6 +28,7 @@ class RateLimiter(object):
         self.period = period
         self.max_calls = max_calls
         self.callback = callback
+        self.consume = consume
         self._lock = threading.Lock()
         self._alock = None
 
@@ -49,7 +50,7 @@ class RateLimiter(object):
             # We want to ensure that no more than max_calls were run in the allowed
             # period. For this, we store the last timestamps of each call and run
             # the rate verification upon each __enter__ call.
-            if len(self.calls) >= self.max_calls:
+            if len(self.calls) + self.consume > self.max_calls:
                 until = time.time() + self.period - self._timespan
                 if self.callback:
                     t = threading.Thread(target=self.callback, args=(until,))
@@ -63,7 +64,8 @@ class RateLimiter(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         with self._lock:
             # Store the last operation timestamp.
-            self.calls.append(time.time())
+            timestamps = [ time.time() ] * self.consume
+            self.calls.append(timestamps)
 
             # Pop the timestamp list front (ie: the older calls) until the sum goes
             # back below the period. This is our 'sliding period' window.
@@ -73,3 +75,7 @@ class RateLimiter(object):
     @property
     def _timespan(self):
         return self.calls[-1] - self.calls[0]
+
+    @property
+    def _remaining(self):
+        return self.max_calls -self.calls
