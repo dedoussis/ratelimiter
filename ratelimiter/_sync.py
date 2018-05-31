@@ -65,7 +65,7 @@ class RateLimiter(object):
         with self._lock:
             # Store the last operation timestamp.
             timestamps = [ time.time() ] * self.consume
-            self.calls.append(timestamps)
+            self.calls.extend(timestamps)
 
             # Pop the timestamp list front (ie: the older calls) until the sum goes
             # back below the period. This is our 'sliding period' window.
