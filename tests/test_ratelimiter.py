@@ -75,7 +75,7 @@ class TestBasic(unittest.TestCase):
         obj = RateLimiter(self.max_calls, self.period)
         for i in range(3 * self.max_calls):
             with obj:
-                calls.append(time.time())
+                calls.extend([time.time()] * obj.consume)
 
         self.assertEqual(len(calls), 3 * self.max_calls)
         self.validate_call_times(calls, self.max_calls, self.period)
@@ -88,6 +88,16 @@ class TestBasic(unittest.TestCase):
                     pass
 
         self.assertGreaterEqual(timer.duration, self.period * obj.consume)
+
+    def test_limit_4(self):
+        calls = []
+        obj = RateLimiter(self.max_calls, self.period, consume=3)
+        for i in range(3 * self.max_calls):
+            with obj:
+                calls.extend([time.time()] * obj.consume)
+
+        self.assertEqual(len(calls), 3 * self.max_calls * obj.consume)
+        self.validate_call_times(calls, self.max_calls, self.period)
 
     def test_decorator_1(self):
         @RateLimiter(self.max_calls, self.period)
