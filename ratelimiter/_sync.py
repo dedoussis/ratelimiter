@@ -77,3 +77,20 @@ class RateLimiter(object):
     @property
     def _timespan(self):
         return self.calls[-1] - self.calls[0]
+
+    @property
+    def consume(self):
+        """The consume attribute allows to modify the number of calls 
+        that will be consumed with a single rate limited run."""
+        return self._consume
+
+    @consume.setter
+    def consume(self, value):
+        if value >= 1:
+            self._consume = value
+        else: 
+            raise ValueError('Number of calls to consume should be >= 1') 
+
+    @consume.deleter
+    def consume(self):
+        raise AttributeError('Consume attribute cannot be dereferenced') 
