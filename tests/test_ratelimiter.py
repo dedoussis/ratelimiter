@@ -55,6 +55,7 @@ class TestBasic(unittest.TestCase):
         self.assertRaises(ValueError, RateLimiter, -self.max_calls, self.period)
         self.assertRaises(ValueError, RateLimiter, self.max_calls, -self.period)
         self.assertRaises(ValueError, RateLimiter, self.max_calls, self.period, consume=0)
+        self.assertRaises(AttributeError, delattr, RateLimiter, 'consume')
 
     def test_limit_1(self):
         with Timer() as timer:
