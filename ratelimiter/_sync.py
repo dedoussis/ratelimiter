@@ -75,7 +75,3 @@ class RateLimiter(object):
     @property
     def _timespan(self):
         return self.calls[-1] - self.calls[0]
-
-    @property
-    def _remaining(self):
-        return self.max_calls -self.calls
