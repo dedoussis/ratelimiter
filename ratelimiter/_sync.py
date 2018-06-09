@@ -20,6 +20,8 @@ class RateLimiter(object):
             raise ValueError('Rate limiting period should be > 0')
         if max_calls <= 0:
             raise ValueError('Rate limiting number of calls should be > 0')
+        if consume < 1:
+            raise ValueError('Number of calls to consume should be >= 1')
 
         # We're using a deque to store the last execution timestamps, not for
         # its maxlen attribute, but to allow constant time front removal.

@@ -52,8 +52,9 @@ class TestBasic(unittest.TestCase):
             self.assertGreaterEqual(ts[i + max_calls] - ts[i], period)
 
     def test_bad_args(self):
-        self.assertRaises(ValueError, RateLimiter, -1, self.period)
-        self.assertRaises(ValueError, RateLimiter, +1, -self.period)
+        self.assertRaises(ValueError, RateLimiter, -self.max_calls, self.period)
+        self.assertRaises(ValueError, RateLimiter, self.max_calls, -self.period)
+        self.assertRaises(ValueError, RateLimiter, self.max_calls, self.period, consume=0)
 
     def test_limit_1(self):
         with Timer() as timer:
