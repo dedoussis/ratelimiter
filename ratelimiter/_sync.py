@@ -86,10 +86,10 @@ class RateLimiter(object):
 
     @consume.setter
     def consume(self, value):
-        if value >= 1:
+        if 1 <= value <= self.max_calls:
             self._consume = value
         else: 
-            raise ValueError('Number of calls to consume should be >= 1') 
+            raise ValueError('Number of calls to consume should be 1 <= consume value <= max calls') 
 
     @consume.deleter
     def consume(self):

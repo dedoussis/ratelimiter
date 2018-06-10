@@ -120,12 +120,34 @@ class TestBasic(unittest.TestCase):
     def test_decorator_2(self):
         @RateLimiter(self.max_calls, self.period)
         def f():
-            f.calls.append(time.time())
+            f.calls.extend([time.time()])
         f.calls = []
 
         [f() for i in range(3 * self.max_calls)]
 
         self.assertEqual(len(f.calls), 3 * self.max_calls)
+        self.validate_call_times(f.calls, self.max_calls, self.period)
+
+    def test_decorator_3(self):
+        consume = 2
+        @RateLimiter(self.max_calls, self.period, consume=consume)
+        def f():
+            pass
+        with Timer() as timer:
+            [f() for i in range(self.max_calls + 1)]
+
+        self.assertGreaterEqual(timer.duration, self.period * consume)
+
+    def test_decorator_4(self):
+        consume = 3
+        @RateLimiter(self.max_calls, self.period, consume=consume)
+        def f():
+            f.calls.extend([time.time()] * consume)
+        f.calls = []
+
+        [f() for i in range(3 * self.max_calls)]
+
+        self.assertEqual(len(f.calls), 3 * self.max_calls * consume)
         self.validate_call_times(f.calls, self.max_calls, self.period)
 
     def test_random(self):
