@@ -60,7 +60,7 @@ class TestBasic(unittest.TestCase):
     def test_limit_1(self):
         with Timer() as timer:
             obj = RateLimiter(self.max_calls, self.period)
-            for i in range(self.max_calls + 1):
+            for _ in range(self.max_calls + 1):
                 with obj:
                     # After the 'self.max_calls' iteration the execution
                     # inside the context manager should be blocked
@@ -75,7 +75,7 @@ class TestBasic(unittest.TestCase):
     def test_limit_2(self):
         calls = []
         obj = RateLimiter(self.max_calls, self.period)
-        for i in range(3 * self.max_calls):
+        for _ in range(3 * self.max_calls):
             with obj:
                 calls.extend([time.time()] * obj.consume)
 
@@ -85,7 +85,7 @@ class TestBasic(unittest.TestCase):
     def test_limit_3(self):
         with Timer() as timer:
             obj = RateLimiter(self.max_calls, self.period, consume=2)
-            for i in range(self.max_calls+1):
+            for _ in range(self.max_calls+1):
                 with obj:
                     pass
 
@@ -94,11 +94,22 @@ class TestBasic(unittest.TestCase):
     def test_limit_4(self):
         calls = []
         obj = RateLimiter(self.max_calls, self.period, consume=3)
-        for i in range(3 * self.max_calls):
+        for _ in range(3 * self.max_calls):
             with obj:
                 calls.extend([time.time()] * obj.consume)
 
         self.assertEqual(len(calls), 3 * self.max_calls * obj.consume)
+        self.validate_call_times(calls, self.max_calls, self.period)
+
+    def test_limit_5(self):
+        calls = []
+        obj = RateLimiter(self.max_calls, self.period)
+        while obj.consume < self.max_calls:
+            with obj:
+                calls.extend([time.time()] * obj.consume)
+            obj.consume += 1
+ 
+        self.assertEqual(len(calls), sum(range(self.max_calls)))
         self.validate_call_times(calls, self.max_calls, self.period)
 
     def test_decorator_1(self):
@@ -109,7 +120,7 @@ class TestBasic(unittest.TestCase):
             pass
 
         with Timer() as timer:
-            [f() for i in range(self.max_calls + 1)]
+            [f() for _ in range(self.max_calls + 1)]
 
         # The sum of the time in the iterations without the rate limit blocking
         # is way lower than 'self.period'. If the duration of the all
@@ -123,7 +134,7 @@ class TestBasic(unittest.TestCase):
             f.calls.extend([time.time()])
         f.calls = []
 
-        [f() for i in range(3 * self.max_calls)]
+        [f() for _ in range(3 * self.max_calls)]
 
         self.assertEqual(len(f.calls), 3 * self.max_calls)
         self.validate_call_times(f.calls, self.max_calls, self.period)
@@ -134,7 +145,7 @@ class TestBasic(unittest.TestCase):
         def f():
             pass
         with Timer() as timer:
-            [f() for i in range(self.max_calls + 1)]
+            [f() for _ in range(self.max_calls + 1)]
 
         self.assertGreaterEqual(timer.duration, self.period * consume)
 
@@ -145,7 +156,7 @@ class TestBasic(unittest.TestCase):
             f.calls.extend([time.time()] * consume)
         f.calls = []
 
-        [f() for i in range(3 * self.max_calls)]
+        [f() for _ in range(3 * self.max_calls)]
 
         self.assertEqual(len(f.calls), 3 * self.max_calls * consume)
         self.validate_call_times(f.calls, self.max_calls, self.period)
