@@ -55,7 +55,7 @@ for varying unit sizes.
     from ratelimiter import RateLimiter
 
     rate_limiter = RateLimiter(max_calls=10, period=1, consume=2)
-    # Time duration of the following operation will be doubled.
+    # Time duration of the following operation will be doubled
     for i in range(100):
         with rate_limiter:
             do_something()
