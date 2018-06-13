@@ -40,6 +40,41 @@ Context Manager
         with rate_limiter:
             do_something()
 
+Consume
+~~~~~~~
+
+For the case of limiting the rate of a specific unit metric rather than the execution 
+of an operation as a whole, the ``ratelimiter`` module provides the consume attribute.
+This allows to limit our execution at a rate of bytes/s instead of block-operations/s. 
+Note that bytes/s is just an example, similar to any other unit such as database 
+capacitiy per second etc. The consume attribute can be modified during execution to account 
+for varying unit sizes. 
+
+.. code:: python
+
+    from ratelimiter import RateLimiter
+
+    rate_limiter = RateLimiter(max_calls=10, period=1, consume=2)
+    # Time duration of the following operation will be doubled.
+    for i in range(100):
+        with rate_limiter:
+            do_something()
+
+.. code:: python
+
+    from ratelimiter import RateLimiter
+
+    rate_limiter = RateLimiter(max_calls=1024, period=1)
+    # Stream of data
+    packets = [ bytearray(512), bytearray(2048), bytearray(1024), bytearray(512) ]
+
+    for packet in packets:
+        with rate_limiter:
+            send(packet)
+            # Consume the length of the packet
+            rate_limiter.consume = packet.length
+
+
 Callback
 ~~~~~~~~
 
