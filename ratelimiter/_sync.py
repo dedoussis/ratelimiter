@@ -4,6 +4,7 @@ import time
 import functools
 import threading
 import collections
+import math
 
 
 class RateLimiter(object):
@@ -53,7 +54,8 @@ class RateLimiter(object):
             # period. For this, we store the last timestamps of each call and run
             # the rate verification upon each __enter__ call.
             if len(self.calls) + self.consume > self.max_calls:
-                until = time.time() + self.period - self._timespan
+                cycles = math.ceil(self.consume / self.max_calls)
+                until = time.time() + cycles * self.period - self._timespan
                 if self.callback:
                     t = threading.Thread(target=self.callback, args=(until,))
                     t.daemon = True
@@ -76,7 +78,7 @@ class RateLimiter(object):
 
     @property
     def _timespan(self):
-        return self.calls[-1] - self.calls[0]
+        return self.calls[-1] - self.calls[0] if self.calls else 0
 
     @property
     def consume(self):
@@ -86,10 +88,10 @@ class RateLimiter(object):
 
     @consume.setter
     def consume(self, value):
-        if 1 <= value <= self.max_calls:
+        if value >= 1:
             self._consume = value
         else: 
-            raise ValueError('Number of calls to consume should be 1 <= consume value <= max calls') 
+            raise ValueError('Number of calls to consume should be >= 1') 
 
     @consume.deleter
     def consume(self):
